@@ -1,16 +1,6 @@
 #include "My_Engine.h"
 #include "Util.h"
-#include <iostream>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <AtlBase.h>
 
-#ifdef WIN32
-#include <direct.h>
-#include <io.h>
-#endif
-using namespace std;
 using namespace std;
 
 
@@ -102,10 +92,33 @@ void My_Engine::GameInit()
 	imgNames = new vector<wstring>();
 	EnumerateFileInPath(L"pngs",imgNames);		//加载图片名称
 
-	for (int size =0; size < imgNames->size(); size++)
+	//绘制图标
+	RECT mrect;
+	Graphics g(bufferDC);
+	Image* thumbnail;
+	wstring basepath = L"pngs/";
+	wstring filepath;
+	srand(time(NULL));
+	int cell_width = wnd_width / 20;
+	int cell_height = wnd_height / 20;
+	for (int r = 0; r<20; r++)
 	{
-		Util::myprintf(L"%ws\n", imgNames->at(size).c_str());
+		for (int c = 0; c<20; c++)
+		{			
+			mrect.left = c*cell_width;
+			mrect.right = mrect.left + cell_width;
+			mrect.top = r*cell_height;
+			mrect.bottom = mrect.top + cell_height;
+
+			filepath = basepath + imgNames->at(rand() % imgNames->size());
+			Gdiplus::Image img(filepath.c_str());
+			thumbnail = img.GetThumbnailImage(cell_width, cell_height, NULL, NULL);
+			g.DrawImage(thumbnail, mrect.left, mrect.top);
+			
+		}
 	}
+
+
 }
 // 游戏逻辑处理
 void My_Engine::GameLogic()
@@ -116,41 +129,7 @@ void My_Engine::GameEnd()
 // 根据GAME_STATE值显示游戏界面
 void My_Engine::GamePaint(HDC hdc)
 {
-	/*HGDIOBJ mbrush, oldbrush;
-	HGDIOBJ mpen, oldpen;
-	RECT mrect;
-	int cell_width = wnd_width / 20;
-		int cell_height = wnd_height / 20;
-		for (int r = 0; r<20; r++)
-		{
-			for (int c = 0; c<20; c++)
-			{
-					mpen = CreatePen(PS_SOLID, 0, RGB(240, 240, 240));
-					oldpen = SelectObject(hdc, mpen);
-					mbrush = CreateSolidBrush(RGB(rand() % 255, rand() % 255, rand() % 255));
-					oldbrush = SelectObject(hdc, mbrush);
-
-					mrect.left = c*cell_width;
-					mrect.right = mrect.left + cell_width;
-					mrect.top = r*cell_height;
-					mrect.bottom = mrect.top + cell_height;
-					FillRect(hdc, &mrect, (HBRUSH)mbrush);
-					Rectangle(hdc, mrect.left, mrect.top, mrect.right, mrect.bottom);
-
-					SelectObject(hdc, oldbrush);
-					DeleteObject(mbrush);
-
-					SelectObject(hdc, oldpen);
-					DeleteObject(mpen);
-			}
-		}
-		*/
 	
-	Graphics g(hdc);
-	Gdiplus::Image img(L"pngs/bat.png");
-	Image* thumbnail = img.GetThumbnailImage(50,50,NULL,NULL);
-	g.DrawImage(thumbnail, PointF());
-
 }
 // 根据KM_ACTION值处理按键行为
 void My_Engine::GameKeyAction(int ActionType)

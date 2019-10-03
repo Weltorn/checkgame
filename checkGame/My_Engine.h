@@ -1,5 +1,16 @@
 #pragma once
 #include "T_Engine.h"
+#include <iostream>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <AtlBase.h>
+
+#ifdef WIN32
+#include <direct.h>
+#include <io.h>
+#endif
+using namespace std;
 
 class My_Engine :
 	public T_Engine
