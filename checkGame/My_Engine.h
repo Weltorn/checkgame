@@ -8,7 +8,7 @@ private:
 	int wnd_width;
 	int wnd_height;
 public:
-	vector<wstring> imgNames;	//图片名称列表
+	vector<wstring> *imgNames;	//图片名称列表
 
 	My_Engine(HINSTANCE hInstance, LPCTSTR szWindowClass, LPCTSTR szTitle,
 		WORD Icon = NULL, WORD SmIcon = NULL,

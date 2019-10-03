@@ -36,34 +36,7 @@ My_Engine::~My_Engine()
 	* @param: cate_dir - string类型
 	* @result：vector<string>类型
 	*/
-vector<wstring> getFiles(wstring cate_dir)
-{
-	vector<wstring> files;//存放文件名
 
-	_tfinddata_t file;
-	long lf;
-
-
-	Util::myprintf(L"try ");
-	//输入文件夹路径
-	if ((lf = _tfindfirst(cate_dir.c_str(), &file)) == -1) {
-		Util::myprintf(L"路径错误");
-	}
-	else {
-		while (_tfindnext(lf, &file) == 0) {
-			//输出文件名
-			Util::myprintf(L"filename: %s\n", file.name);
-			if (_tcscmp(file.name, L".") == 0 || _tcscmp(file.name, L"..") == 0)
-				continue;
-			files.push_back(file.name);
-		}
-	}
-	_findclose(lf);
-
-	//排序，按从小到大排序
-	sort(files.begin(), files.end());
-	return files;
-}
 DWORD My_Engine::EnumerateFileInPath(LPWSTR szPath, vector<wstring>* filelist)
 {
 	WIN32_FIND_DATA FindFileData;
@@ -126,7 +99,13 @@ DWORD My_Engine::EnumerateFileInPath(LPWSTR szPath, vector<wstring>* filelist)
 }
 void My_Engine::GameInit()
 {
-	EnumerateFileInPath(L"pngs",&imgNames);		//加载图片名称
+	imgNames = new vector<wstring>();
+	EnumerateFileInPath(L"pngs",imgNames);		//加载图片名称
+
+	for (int size =0; size < imgNames->size(); size++)
+	{
+		Util::myprintf(L"%ws\n", imgNames->at(size).c_str());
+	}
 }
 // 游戏逻辑处理
 void My_Engine::GameLogic()
