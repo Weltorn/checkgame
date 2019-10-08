@@ -11,6 +11,7 @@
 #pragma once
 #include "T_Config.h"
 #include "T_Display.h"
+#include "Util.h"
 
 class T_Engine
 {
@@ -67,7 +68,7 @@ public:
 	// 附加按键行为处理
 	void SubKeyAction(WPARAM wParam);
 
-	// 被系统自动调用的回调函数
+	// 被系统自动调用的回调函数()
 	static LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, 
 		                         WPARAM wParam, LPARAM lParam );
 	// 初始化处理

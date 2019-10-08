@@ -183,13 +183,16 @@ LRESULT T_Engine::GameEvent(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 		SetSleep(TRUE);
 		return 0;
 	case WM_CREATE:
+		Util::myprintf(L"init\n");	
 		m_hWnd = hWnd;
 		GameInit();
 		return 0;
-	case WM_LBUTTONDOWN: //鼠标左键按下的处理
+	case WM_LBUTTONDOWN: //鼠标左键按下的处理	
+		Util::myprintf(L"WM_LBUTTONDOWN\n");
 		GameMouseAction(LOWORD(lParam), HIWORD(lParam), MOUSE_LCLICK);
 		return 0;
 	case WM_MOUSEMOVE: //鼠标移动处理
+		Util::myprintf(L"WM_MOUSEMOVE\n");
 		GameMouseAction(LOWORD(lParam), HIWORD(lParam), MOUSE_MOVE);
 		return 0;
 	case WM_KEYDOWN: //键被按下的处理
@@ -258,6 +261,7 @@ LRESULT T_Engine::GameEvent(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 		PAINTSTRUCT ps;
 		hdc=BeginPaint(hWnd,&ps);
 		hdc = bufferDC;
+		Util::myprintf(L"WM_PAINT\n");
 		GamePaint(hdc);
 		EndPaint(hWnd,&ps);	
 		return 0;

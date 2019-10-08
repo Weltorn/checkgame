@@ -96,14 +96,15 @@ void My_Engine::GameInit()
 	RECT mrect;
 	Graphics g(bufferDC);
 	Image* thumbnail;
+
 	wstring basepath = L"pngs/";
 	wstring filepath;
 	srand(time(NULL));
-	int cell_width = wnd_width / 20;
-	int cell_height = wnd_height / 20;
-	for (int r = 0; r<20; r++)
+	int cell_width = wnd_width / 15;
+	int cell_height = wnd_height / 15;
+	for (int r = 0; r<15; r++)
 	{
-		for (int c = 0; c<20; c++)
+		for (int c = 0; c<15; c++)
 		{			
 			mrect.left = c*cell_width;
 			mrect.right = mrect.left + cell_width;
@@ -136,4 +137,6 @@ void My_Engine::GameKeyAction(int ActionType)
 {}
 // 根据KM_ACTION值处理鼠标行为
  void My_Engine::GameMouseAction(int x, int y, int ActionType)
-{}
+{
+	 
+ }
