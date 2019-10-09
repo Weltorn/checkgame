@@ -164,7 +164,7 @@ void My_Engine::GameKeyAction(int ActionType)
 {
 	 int cell_width = wnd_width / column;
 	 int cell_height = wnd_height / row;
-	 int clickedIcon = x / cell_width*row + y / cell_height;
+	 int clickedIcon = x / cell_width + y / cell_height*row;
 	 if (ActionType == MOUSE_LCLICK)
 	 {
 		 if(selectedIcon == -1)		//当前无选中的图标
@@ -173,8 +173,10 @@ void My_Engine::GameKeyAction(int ActionType)
 		 }
 		 else if(isSameIcon(clickedIcon))//匹配成功
 		 {
+			 Util::myprintf(L"same icon\n");
 			 //消除图标
 			 //待编写...
+			 selectedIcon = -1;
 		 }
 		 else//匹配失败，更新为当前图标
 		 {
@@ -182,12 +184,15 @@ void My_Engine::GameKeyAction(int ActionType)
 		 }
 
 
-		 Util::myprintf(L"selected icon: x:%d,y:%d\n", selectedIcon%column,selectedIcon/row);
+		 Util::myprintf(L"selected icon: y:%d,x:%d,id:%d\n", selectedIcon/row, selectedIcon%column, *(randIconIdMap + selectedIcon));
 	 }
  }
 
  boolean My_Engine::isSameIcon(int clicked)
  {
-
+	 if (selectedIcon == -1)
+		 return false;
+	 if (*(randIconIdMap + clicked) == *(randIconIdMap + selectedIcon))
+		 return true;
 	 return false;
  }
