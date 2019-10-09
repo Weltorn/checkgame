@@ -26,6 +26,12 @@ private:
 	vector<wstring> *imgNames;	//图片名称列表
 	int* randIconIdMap;			//图标分布图
 	int selectedIcon;			//当前选中的图标
+
+	HDC hIconLayerDC;
+	HBITMAP hIconLayerBmp;
+
+	HDC hBkDC;
+	HBITMAP hBkBmp;
 public:
 	
 

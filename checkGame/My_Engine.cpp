@@ -8,11 +8,42 @@ using namespace std;
 My_Engine::My_Engine(HINSTANCE hInstance, LPCTSTR szWindowClass, LPCTSTR szTitle,
 	WORD Icon, WORD SmIcon,
 	int iWidth, int iHeight,
-	COLORREF bkColor):T_Engine(hInstance, szWindowClass,  szTitle,
-		 Icon,  SmIcon, iWidth,  iHeight,	bkColor)
+	COLORREF bkColor) :T_Engine(hInstance, szWindowClass, szTitle,
+		Icon, SmIcon, iWidth, iHeight, bkColor)
 {
 	wnd_width = iWidth;
 	wnd_height = iHeight;
+
+	//创建图标图层及设备环境
+	HDC hdc = GetDC(m_hWnd);
+	hIconLayerDC = CreateCompatibleDC(hdc);
+	
+	hBkDC = CreateCompatibleDC(hdc);
+	hBkBmp = CreateCompatibleBitmap(hdc, wnd_width, wnd_height);
+	SelectObject(hBkDC, hBkBmp);
+	ReleaseDC(m_hWnd, hdc); hdc = NULL;
+	
+	//加载透明图片为图标背景
+	Bitmap bmp(L"pngs/transparent.png");
+	//修改透明背景图片大小
+	Gdiplus::Bitmap * pTemp = new Gdiplus::Bitmap(wnd_width, wnd_height, bmp.GetPixelFormat());
+	if (pTemp)
+	{
+		Gdiplus::Graphics * g = Gdiplus::Graphics::FromImage(pTemp);
+		if (g)
+		{
+			// use the best interpolation mode
+			g->SetInterpolationMode(Gdiplus::InterpolationModeHighQualityBicubic);
+			g->DrawImage(&bmp, 0, 0, wnd_width, wnd_height);
+		}
+	}
+
+	Color clr(0, 0, 0, 0);
+	if (Gdiplus::Ok == pTemp->GetHBITMAP(clr, &hIconLayerBmp))
+	{
+		SelectObject(hIconLayerDC, hIconLayerBmp);
+	}
+	
 }
 
 
@@ -20,7 +51,7 @@ My_Engine::~My_Engine()
 {
 	delete(imgNames);		//释放图标文件名列表
 	delete(randIconIdMap);  //释放图标分布图
-
+	DeleteObject(hIconLayerBmp);
 }
 
 
@@ -91,32 +122,38 @@ DWORD My_Engine::EnumerateFileInPath(LPWSTR szPath, vector<wstring>* filelist)
 	return 0;
 }
 void My_Engine::GameInit()
-{
+{	
+	//加载图片名称
 	imgNames = new vector<wstring>();
-	EnumerateFileInPath(L"pngs",imgNames);		//加载图片名称
+	EnumerateFileInPath(L"pngs",imgNames);	
 
+	//图标分布图
 	randIconIdMap = (int*)malloc(row*column * sizeof(int));
 
+	//初始化选中图标
 	selectedIcon = -1;
+
 	//设置图标行列数
 	row = 15;
 	column = 15;
 
-	//绘制图标
-	RECT mrect;
-	Graphics g(bufferDC);
+	RECT mrect;	
 	Image* thumbnail;
 
+	//图片路径
 	wstring basepath = L"pngs/";
 	wstring filepath;
 
-	//绘制背景图片
+	//绘制背景图片（hBkDC）
+	Graphics g(hBkDC);
 	filepath = basepath + L"bg/bg.png";
 	Gdiplus::Image img(filepath.c_str());
 	thumbnail = img.GetThumbnailImage(wnd_width, wnd_height, NULL, NULL);
 	g.DrawImage(thumbnail, 0,0);
 
 
+	//绘制图标（hIconLayerDC）
+	Graphics gi(hIconLayerDC);
 	srand(time(NULL));
 	int cell_width = wnd_width / column;
 	int cell_height = wnd_height / row;
@@ -136,7 +173,7 @@ void My_Engine::GameInit()
 			filepath = basepath + imgNames->at(iconId);
 			Gdiplus::Image img(filepath.c_str());
 			thumbnail = img.GetThumbnailImage(cell_width, cell_height, NULL, NULL);
-			g.DrawImage(thumbnail, mrect.left, mrect.top);
+			gi.DrawImage(thumbnail, mrect.left, mrect.top);
 			
 		}
 	}
@@ -145,7 +182,8 @@ void My_Engine::GameInit()
 }
 // 游戏逻辑处理
 void My_Engine::GameLogic()
-{}
+{
+}
 // 游戏结束处理
 void My_Engine::GameEnd()
 {
@@ -154,7 +192,19 @@ void My_Engine::GameEnd()
 // 根据GAME_STATE值显示游戏界面
 void My_Engine::GamePaint(HDC hdc)
 {
-	
+	Util::myprintf(L"paint event \n");	
+	BitBlt(hdc, 0, 0, WIN_WIDTH, WIN_HEIGHT,
+		hBkDC, 0, 0, SRCCOPY);
+	//BitBlt(hdc, 0, 0, WIN_WIDTH, WIN_HEIGHT,
+	//	hIconLayerDC, 0, 0, SRCCOPY);
+	BLENDFUNCTION blendfunc = { AC_SRC_OVER, 0, 255, AC_SRC_ALPHA };
+	AlphaBlend(hdc,
+		0, 0, wnd_width, wnd_height,
+		hIconLayerDC,
+		0, 0, wnd_width, wnd_height,
+		blendfunc);
+
+
 }
 // 根据KM_ACTION值处理按键行为
 void My_Engine::GameKeyAction(int ActionType)

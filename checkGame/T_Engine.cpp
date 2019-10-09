@@ -40,9 +40,12 @@ T_Engine::T_Engine(HINSTANCE hInstance, LPCTSTR szWindowClass, LPCTSTR szTitle,
 	}
 
 	//创建内存缓冲设备及内存缓冲位图
-	bufferDC = CreateCompatibleDC(GetDC(m_hWnd));
-	bufferBitmap = CreateCompatibleBitmap(GetDC(m_hWnd), wndWidth, wndHeight);
+	HDC hdc = GetDC(m_hWnd);
+	bufferDC = CreateCompatibleDC(hdc);
+	bufferBitmap = CreateCompatibleBitmap(hdc, wndWidth, wndHeight);
 	SelectObject(bufferDC, bufferBitmap);
+	ReleaseDC(m_hWnd, hdc); hdc = NULL;
+
 
 	// 填充窗口背景色(更新: 2019-09-28)
 	RECT    rect;
@@ -260,7 +263,7 @@ LRESULT T_Engine::GameEvent(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 	case WM_PAINT: //窗口绘制
 		PAINTSTRUCT ps;
 		hdc=BeginPaint(hWnd,&ps);
-		hdc = bufferDC;
+		hdc = bufferDC;			//有毒哦你！！！
 		Util::myprintf(L"WM_PAINT\n");
 		GamePaint(hdc);
 		EndPaint(hWnd,&ps);	
@@ -313,7 +316,7 @@ void T_Engine::StartEngine()
 					HDC hDC = GetDC(m_hWnd);
 					//将内存设备中绘制的内容绘到屏幕上
 					BitBlt(hDC, 0, 0, WIN_WIDTH, WIN_HEIGHT, 
-						   bufferDC, 0, 0, SRCCOPY);
+					   bufferDC, 0, 0, SRCCOPY);
 					//释放设备
 					ReleaseDC(m_hWnd, hDC);
 				}
