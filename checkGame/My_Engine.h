@@ -18,15 +18,27 @@ class My_Engine :
 private:
 	int wnd_width;
 	int wnd_height;
-public:
+
+	//图标行列数
+	int row;
+	int column;
+
 	vector<wstring> *imgNames;	//图片名称列表
+	int* randIconIdMap;			//图标分布图
+	int selectedIcon;			//当前选中的图标
+public:
+	
 
 	My_Engine(HINSTANCE hInstance, LPCTSTR szWindowClass, LPCTSTR szTitle,
 		WORD Icon = NULL, WORD SmIcon = NULL,
 		int iWidth = WIN_WIDTH, int iHeight = WIN_HEIGHT,
 		COLORREF bkColor = WIN_BKCLR);
 	~My_Engine();
+
+	//获取目录下文件列表
 	DWORD EnumerateFileInPath(LPWSTR szPath, vector<wstring>* filelist);
+	//检查点击的图标是否与已选择的图标相同
+	boolean My_Engine::isSameIcon(int clicked);
 
 	void GameInit();
 	// 游戏逻辑处理

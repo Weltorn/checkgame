@@ -18,6 +18,9 @@ My_Engine::My_Engine(HINSTANCE hInstance, LPCTSTR szWindowClass, LPCTSTR szTitle
 
 My_Engine::~My_Engine()
 {
+	delete(imgNames);		//释放图标文件名列表
+	delete(randIconIdMap);  //释放图标分布图
+
 }
 
 
@@ -92,6 +95,13 @@ void My_Engine::GameInit()
 	imgNames = new vector<wstring>();
 	EnumerateFileInPath(L"pngs",imgNames);		//加载图片名称
 
+	randIconIdMap = (int*)malloc(row*column * sizeof(int));
+
+	selectedIcon = -1;
+	//设置图标行列数
+	row = 15;
+	column = 15;
+
 	//绘制图标
 	RECT mrect;
 	Graphics g(bufferDC);
@@ -99,19 +109,31 @@ void My_Engine::GameInit()
 
 	wstring basepath = L"pngs/";
 	wstring filepath;
+
+	//绘制背景图片
+	filepath = basepath + L"bg/bg.png";
+	Gdiplus::Image img(filepath.c_str());
+	thumbnail = img.GetThumbnailImage(wnd_width, wnd_height, NULL, NULL);
+	g.DrawImage(thumbnail, 0,0);
+
+
 	srand(time(NULL));
-	int cell_width = wnd_width / 15;
-	int cell_height = wnd_height / 15;
-	for (int r = 0; r<15; r++)
+	int cell_width = wnd_width / column;
+	int cell_height = wnd_height / row;
+	int iconId;
+	for (int r = 0; r<row; r++)
 	{
-		for (int c = 0; c<15; c++)
+		for (int c = 0; c<column; c++)
 		{			
 			mrect.left = c*cell_width;
 			mrect.right = mrect.left + cell_width;
 			mrect.top = r*cell_height;
 			mrect.bottom = mrect.top + cell_height;
 
-			filepath = basepath + imgNames->at(rand() % imgNames->size());
+			iconId = rand() % imgNames->size();//随机图片
+			*(randIconIdMap + r*column + c) = iconId;//保存图片分布图
+
+			filepath = basepath + imgNames->at(iconId);
 			Gdiplus::Image img(filepath.c_str());
 			thumbnail = img.GetThumbnailImage(cell_width, cell_height, NULL, NULL);
 			g.DrawImage(thumbnail, mrect.left, mrect.top);
@@ -126,7 +148,9 @@ void My_Engine::GameLogic()
 {}
 // 游戏结束处理
 void My_Engine::GameEnd()
-{}
+{
+	
+}
 // 根据GAME_STATE值显示游戏界面
 void My_Engine::GamePaint(HDC hdc)
 {
@@ -138,5 +162,32 @@ void My_Engine::GameKeyAction(int ActionType)
 // 根据KM_ACTION值处理鼠标行为
  void My_Engine::GameMouseAction(int x, int y, int ActionType)
 {
-	 
+	 int cell_width = wnd_width / column;
+	 int cell_height = wnd_height / row;
+	 int clickedIcon = x / cell_width*row + y / cell_height;
+	 if (ActionType == MOUSE_LCLICK)
+	 {
+		 if(selectedIcon == -1)		//当前无选中的图标
+		 {
+			 selectedIcon = clickedIcon;
+		 }
+		 else if(isSameIcon(clickedIcon))//匹配成功
+		 {
+			 //消除图标
+			 //待编写...
+		 }
+		 else//匹配失败，更新为当前图标
+		 {
+			 selectedIcon = clickedIcon;
+		 }
+
+
+		 Util::myprintf(L"selected icon: x:%d,y:%d\n", selectedIcon%column,selectedIcon/row);
+	 }
+ }
+
+ boolean My_Engine::isSameIcon(int clicked)
+ {
+
+	 return false;
  }
