@@ -43,8 +43,7 @@ public:
 		COLORREF bkColor = WIN_BKCLR);
 	~My_Engine();
 
-	//获取目录下文件列表
-	DWORD EnumerateFileInPath(LPWSTR szPath, vector<wstring>* filelist);
+	
 	//检查点击的图标是否与已选择的图标相同
 	boolean My_Engine::isSameIcon(int clicked);
 

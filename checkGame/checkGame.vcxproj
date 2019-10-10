@@ -142,6 +142,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="GameBoard.h" />
     <ClInclude Include="My_Engine.h" />
     <ClInclude Include="T_Config.h" />
     <ClInclude Include="T_Display.h" />
@@ -150,6 +151,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="checkMain.cpp" />
+    <ClCompile Include="GameBoard.cpp" />
     <ClCompile Include="My_Engine.cpp" />
     <ClCompile Include="T_Display.cpp" />
     <ClCompile Include="T_Engine.cpp" />
