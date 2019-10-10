@@ -26,21 +26,25 @@ My_Engine::My_Engine(HINSTANCE hInstance, LPCTSTR szWindowClass, LPCTSTR szTitle
 	//加载透明图片为图标背景
 	Bitmap bmp(L"pngs/transparent.png");
 	//修改透明背景图片大小
-	Gdiplus::Bitmap * pTemp = new Gdiplus::Bitmap(wnd_width, wnd_height, bmp.GetPixelFormat());
-	if (pTemp)
+	pTransBmp = new Gdiplus::Bitmap(wnd_width, wnd_height, bmp.GetPixelFormat());
+	if (pTransBmp)
 	{
-		Gdiplus::Graphics * g = Gdiplus::Graphics::FromImage(pTemp);
+		Gdiplus::Graphics * g = Gdiplus::Graphics::FromImage(pTransBmp);
 		if (g)
 		{
 			// use the best interpolation mode
 			g->SetInterpolationMode(Gdiplus::InterpolationModeHighQualityBicubic);
 			g->DrawImage(&bmp, 0, 0, wnd_width, wnd_height);
 		}
+		DeleteObject(g);
 	}
 
 	Color clr(0, 0, 0, 0);
-	if (Gdiplus::Ok == pTemp->GetHBITMAP(clr, &hIconLayerBmp))
-	{
+	if (hIconLayerBmp != NULL)		//从pTransBmp更新透明背景
+		DeleteObject(hIconLayerBmp), hIconLayerBmp = NULL;
+
+	if (Gdiplus::Ok == pTransBmp->GetHBITMAP(clr, &hIconLayerBmp))
+	{		
 		SelectObject(hIconLayerDC, hIconLayerBmp);
 	}
 	
@@ -51,6 +55,7 @@ My_Engine::~My_Engine()
 {
 	delete(imgNames);		//释放图标文件名列表
 	delete(randIconIdMap);  //释放图标分布图
+	delete(pTransBmp);
 	DeleteObject(hIconLayerBmp);
 }
 
@@ -85,17 +90,12 @@ DWORD My_Engine::EnumerateFileInPath(LPWSTR szPath, vector<wstring>* filelist)
 	{
 		do
 		{
-			/* 如果不想显示代表本级目录和上级目录的“.”和“..”，
-			可以使用注释部分的代码过滤
+			//不显示代表本级目录和上级目录的“.”和“..”，			
 			if(lstrcmp(FindFileData.cFileName, TEXT(".")) == 0 ||
 			lstrcmp(FindFileData.cFileName, TEXT("..")) == 0)
 			{
-			continue;
+				continue;
 			}
-			*/
-
-			// 打印文件名、目录名
-			Util::myprintf(L"%ws\t\t", FindFileData.cFileName);
 			// 判断文件属性，是否为加密文件或者文件夹
 			if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED)
 			{
@@ -112,8 +112,16 @@ DWORD My_Engine::EnumerateFileInPath(LPWSTR szPath, vector<wstring>* filelist)
 				Util::myprintf(L"<DIR> ");
 			}
 			else
-			{
-				filelist->push_back(FindFileData.cFileName);
+			{		//透明图片id为0
+				if (lstrcmp(FindFileData.cFileName, TEXT("transparent.png")) == 0)
+
+				{
+					filelist->insert(filelist->begin(), FindFileData.cFileName);
+				}
+				else
+				{
+					filelist->push_back(FindFileData.cFileName);
+				}
 			}
 			// 读者可根据文件属性表中的内容自行添加、判断文件属性
 			Util::myprintf(L"\n");
@@ -127,15 +135,15 @@ void My_Engine::GameInit()
 	imgNames = new vector<wstring>();
 	EnumerateFileInPath(L"pngs",imgNames);	
 
+	//设置图标行列数
+	row = 15;
+	column = 15;
+
 	//图标分布图
 	randIconIdMap = (int*)malloc(row*column * sizeof(int));
 
 	//初始化选中图标
 	selectedIcon = -1;
-
-	//设置图标行列数
-	row = 15;
-	column = 15;
 
 	RECT mrect;	
 	Image* thumbnail;
@@ -167,7 +175,7 @@ void My_Engine::GameInit()
 			mrect.top = r*cell_height;
 			mrect.bottom = mrect.top + cell_height;
 
-			iconId = rand() % imgNames->size();//随机图片
+			iconId = rand() % (imgNames->size()-1)+1;//随机图片,从1号开始（0号为透明图片）
 			*(randIconIdMap + r*column + c) = iconId;//保存图片分布图
 
 			filepath = basepath + imgNames->at(iconId);
@@ -177,8 +185,8 @@ void My_Engine::GameInit()
 			
 		}
 	}
-
-
+	DeleteObject(&gi);
+	DeleteObject(&g);
 }
 // 游戏逻辑处理
 void My_Engine::GameLogic()
@@ -192,19 +200,51 @@ void My_Engine::GameEnd()
 // 根据GAME_STATE值显示游戏界面
 void My_Engine::GamePaint(HDC hdc)
 {
-	Util::myprintf(L"paint event \n");	
+	//绘制背景图层
 	BitBlt(hdc, 0, 0, WIN_WIDTH, WIN_HEIGHT,
 		hBkDC, 0, 0, SRCCOPY);
-	//BitBlt(hdc, 0, 0, WIN_WIDTH, WIN_HEIGHT,
-	//	hIconLayerDC, 0, 0, SRCCOPY);
+
+	////绘制图标图层
+	//Color clr(0, 0, 0, 0);
+	//if (hIconLayerBmp != NULL)		//从pTransBmp更新透明背景
+	//	DeleteObject(hIconLayerBmp), hIconLayerBmp = NULL;
+	//if (Gdiplus::Ok == pTransBmp->GetHBITMAP(clr, &hIconLayerBmp))
+	//{
+	//	SelectObject(hIconLayerDC, hIconLayerBmp);
+	//}
+
+	////绘制图标（hIconLayerDC）
+	//Graphics gi(hIconLayerDC);
+	//RECT rect;
+	//Image* thumbnail;
+	//int cell_width = wnd_width / column;
+	//int cell_height = wnd_height / row;
+	//wstring basepath = L"pngs/";
+	//wstring filepath;
+
+	//for (int r = 0; r<row; r++)
+	//{
+	//	for (int c = 0; c<column; c++)
+	//	{
+	//		rect.left = c*cell_width;
+	//		rect.right = rect.left + cell_width;
+	//		rect.top = r*cell_height;
+	//		rect.bottom = rect.top + cell_height;
+
+	//		filepath = basepath + imgNames->at(*(randIconIdMap+r*column+c));
+	//		Gdiplus::Image img(filepath.c_str());
+	//		thumbnail = img.GetThumbnailImage(cell_width, cell_height, NULL, NULL);
+	//		gi.DrawImage(thumbnail, rect.left, rect.top);
+
+	//	}
+	//}
+	//叠加到bufferDC
 	BLENDFUNCTION blendfunc = { AC_SRC_OVER, 0, 255, AC_SRC_ALPHA };
 	AlphaBlend(hdc,
 		0, 0, wnd_width, wnd_height,
 		hIconLayerDC,
 		0, 0, wnd_width, wnd_height,
 		blendfunc);
-
-
 }
 // 根据KM_ACTION值处理按键行为
 void My_Engine::GameKeyAction(int ActionType)
@@ -223,9 +263,10 @@ void My_Engine::GameKeyAction(int ActionType)
 		 }
 		 else if(isSameIcon(clickedIcon))//匹配成功
 		 {
-			 Util::myprintf(L"same icon\n");
 			 //消除图标
-			 //待编写...
+			 //替换为透明图标
+			 *(randIconIdMap + selectedIcon) = 0;
+			 *(randIconIdMap + clickedIcon) = 0;
 			 selectedIcon = -1;
 		 }
 		 else//匹配失败，更新为当前图标

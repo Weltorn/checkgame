@@ -32,6 +32,8 @@ private:
 
 	HDC hBkDC;
 	HBITMAP hBkBmp;
+
+	Gdiplus::Bitmap * pTransBmp;
 public:
 	
 

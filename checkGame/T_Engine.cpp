@@ -195,7 +195,6 @@ LRESULT T_Engine::GameEvent(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 		GameMouseAction(LOWORD(lParam), HIWORD(lParam), MOUSE_LCLICK);
 		return 0;
 	case WM_MOUSEMOVE: //鼠标移动处理
-		Util::myprintf(L"WM_MOUSEMOVE\n");
 		GameMouseAction(LOWORD(lParam), HIWORD(lParam), MOUSE_MOVE);
 		return 0;
 	case WM_KEYDOWN: //键被按下的处理
