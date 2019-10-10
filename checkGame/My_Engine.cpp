@@ -185,6 +185,18 @@ void My_Engine::GameInit()
 			
 		}
 	}
+
+	//绘制背景图层
+	BitBlt(bufferDC, 0, 0, WIN_WIDTH, WIN_HEIGHT,
+		hBkDC, 0, 0, SRCCOPY);
+	//叠加到bufferDC
+	BLENDFUNCTION blendfunc = { AC_SRC_OVER, 0, 255, AC_SRC_ALPHA };
+	AlphaBlend(bufferDC,
+		0, 0, wnd_width, wnd_height,
+		hIconLayerDC,
+		0, 0, wnd_width, wnd_height,
+		blendfunc);
+
 	DeleteObject(&gi);
 	DeleteObject(&g);
 }
@@ -200,9 +212,7 @@ void My_Engine::GameEnd()
 // 根据GAME_STATE值显示游戏界面
 void My_Engine::GamePaint(HDC hdc)
 {
-	//绘制背景图层
-	BitBlt(hdc, 0, 0, WIN_WIDTH, WIN_HEIGHT,
-		hBkDC, 0, 0, SRCCOPY);
+	
 
 	////绘制图标图层
 	//Color clr(0, 0, 0, 0);
@@ -238,13 +248,7 @@ void My_Engine::GamePaint(HDC hdc)
 
 	//	}
 	//}
-	//叠加到bufferDC
-	BLENDFUNCTION blendfunc = { AC_SRC_OVER, 0, 255, AC_SRC_ALPHA };
-	AlphaBlend(hdc,
-		0, 0, wnd_width, wnd_height,
-		hIconLayerDC,
-		0, 0, wnd_width, wnd_height,
-		blendfunc);
+	
 }
 // 根据KM_ACTION值处理按键行为
 void My_Engine::GameKeyAction(int ActionType)
@@ -261,12 +265,23 @@ void My_Engine::GameKeyAction(int ActionType)
 		 {
 			 selectedIcon = clickedIcon;
 		 }
-		 else if(isSameIcon(clickedIcon))//匹配成功
+		 else if(clickedIcon != selectedIcon && isSameIcon(clickedIcon))//匹配成功
 		 {
 			 //消除图标
 			 //替换为透明图标
-			 *(randIconIdMap + selectedIcon) = 0;
-			 *(randIconIdMap + clickedIcon) = 0;
+			 //*(randIconIdMap + selectedIcon) = 0;
+			// *(randIconIdMap + clickedIcon) = 0;
+			 int iconpx = selectedIcon % column*cell_width;
+			 int iconpy = selectedIcon / row*cell_height;
+			 BitBlt(bufferDC, iconpx, iconpy, cell_width, cell_height,
+				 hBkDC, iconpx, iconpy, SRCCOPY);
+
+			 iconpx = clickedIcon % column*cell_width;
+			 iconpy = clickedIcon / row*cell_height;
+			 BitBlt(bufferDC, iconpx, iconpy, cell_width, cell_height,
+				 hBkDC, iconpx, iconpy, SRCCOPY);
+
+			 InvalidateRect(m_hWnd,NULL,false);
 			 selectedIcon = -1;
 		 }
 		 else//匹配失败，更新为当前图标
